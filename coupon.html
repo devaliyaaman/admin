@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&family=Roboto:wght@300;400&display=swap"
+        rel="stylesheet">
+</head>
+
+<style>
+    .category-box {
+        display: grid;
+        gap: 0.3rem;
+        justify-content: center;
+        padding: 1rem;
+        border: 1px solid #8871E6;
+        border-radius: 15px;
+    }
+</style>
+
+<body>
+    <div id="loader-overlay">
+        <div class="loading" id="loader"></div>
+    </div>
+
+    <div class="navbar">
+        <div class="head">Admin Panel</div>
+        <a href="">Logout</a>
+    </div>
+
+    <div class="cover-page">
+        <div class="sidebar">
+            <div class="w-btn" onclick="openDashboard()">Dashboard</div>
+
+            <div class="head">CATEGORIES</div>
+            <div class="w-btn" onclick="manageCategories()">Manage Categories</div>
+
+            <div class="head">TESTS</div>
+            <div class="w-btn" onclick="manageTests()">Manage Tests</div>
+            <div class="w-btn" onclick="manageWorkers()">Manage Workers</div>
+            <div class="w-btn" onclick="manageHospitals()">Manage hospitals</div>
+
+            <div class="head">COUPON</div>
+            <div class="b-btn" onclick="manageCoupons()">Manage Coupons</div>
+        </div>
+
+        <div id="addItems">
+            <div class="main-head" id="addHead">
+                <div>Add New Coupon</div><button id="addBtn" onclick="addCoupon()">Save</button>
+            </div>
+            <div class="main-head" id="editHead" style="display: none;">
+                <div>Edit Coupon</div><button id="addBtn" onclick="editCoupon()">Edit & Save</button>
+            </div>
+            <div class="add-new" id="addForm">
+                <input type="text" placeholder="Coupon Code" id="code">
+                <input type="text" placeholder="Minimum Order Value" id="min_order">
+                <input type="text" placeholder="Flat Discount" id="discount">
+            </div>
+            <div class="main-head">
+                Coupons
+            </div>
+            <div class="categories-container" id="couponContainer"></div>
+        </div>
+
+    </div>
+
+    <script>
+        var editId = 0;
+        fetchCoupon();
+        function fetchCoupon() {
+            showLoader();
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/coupons.php?route=list_coupons", requestOptions)
+                .then((response) => response.json())
+                .then((result) => {
+                    console.log(result);
+                    showCoupons(result.data);
+                })
+                .catch((error) => console.error(error));
+        }
+
+        function showCoupons(data) {
+            const container = document.getElementById('couponContainer');
+            container.innerHTML = "";
+
+            data.forEach(item => {
+                const newCategory = `
+                <div class="category-box" id="${item.id}" >
+                    <div class="icon-text">Code</div>
+                    <div class="icon-text" id="code${item.id}">${item.code}</div>
+                    <div class="icon-text">Minimum Order Value</div>
+                    <div class="icon-text" id="min_order${item.id}">${item["minimum_order_value"]}</div>
+                    <div class="icon-text">Flat Discount</div>
+                    <div class="icon-text" id="discount${item.id}">${item['flat_discount']}</div>
+                    <div class="action">
+                    <div class="edit" onclick="editCouponTab(${item.id})"><img src="https://cdn-icons-png.flaticon.com/128/10336/10336582.png" alt=""></div>
+                    <div class="delete" onclick="deleteCoupon(${item.id})"><img src="https://cdn-icons-png.flaticon.com/128/1828/1828843.png" alt=""></div>
+                </div>
+                </div>`
+
+                container.innerHTML += newCategory
+            });
+            hideLoader();
+        }
+
+        function addCoupon() {
+            const code = document.getElementById('code').value;
+            const min_order = document.getElementById('min_order').value;
+            const discount = document.getElementById('discount').value;
+
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/coupons.php?route=add_coupon&code=" + code + "&minimum_order_value=" + min_order + "&flat_discount=" + discount, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+            fetchCoupon();
+        }
+
+        function deleteCoupon(id) {
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/coupons.php?route=delete_coupon&id=" + id, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+            document.getElementById(id).remove();
+        }
+
+        function editCouponTab(id) {
+            document.getElementById('editHead').style.display = "flex";
+            document.getElementById('addHead').style.display = "none";
+
+            document.getElementById('code').value = document.getElementById("code" + id).innerText;
+            document.getElementById('min_order').value = document.getElementById("min_order" + id).innerText;
+            document.getElementById('discount').value = document.getElementById("discount" + id).innerText;
+
+            editId = id;
+        }
+
+        function editCoupon() {
+            const code = document.getElementById('code').value;
+            const min_order = document.getElementById('min_order').value;
+            const discount = document.getElementById('discount').value;
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/coupons.php?route=edit_coupon&id=" + editId + "&code=" + code + "&minimum_order_value=" + min_order + "&flat_discount=" + discount, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+            document.getElementById('editHead').style.display = "none";
+            document.getElementById('addHead').style.display = "flex";
+            fetchCoupon();
+        }
+
+
+        function openDashboard() {
+            showLoader();
+            window.location.href = "admin.html"
+        }
+        function manageCategories() {
+            showLoader();
+            window.location.href = "categories.html"
+        }
+        function manageCoupons() {
+            showLoader();
+            window.location.href = "coupon.html"
+        }
+        function manageHospitals() {
+            showLoader();
+            window.location.href = "hospital.html"
+        }
+        function manageTests() {
+            showLoader();
+            window.location.href = "test.html"
+        }
+        function manageWorkers() {
+            showLoader();
+            window.location.href = "worker.html"
+        }
+        function showLoader() {
+            document.getElementById('loader-overlay').style.display = "flex";
+        }
+        function hideLoader() {
+            document.getElementById('loader-overlay').style.display = "none";
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&family=Roboto:wght@300;400&display=swap"
+        rel="stylesheet">
+</head>
+
+
+<body>
+
+    <div id="loader-overlay">
+        <div class="loading" id="loader"></div>
+    </div>
+
+    <div class="navbar">
+        <div class="head">Admin Panel</div>
+        <a href="">Logout</a>
+    </div>
+
+    <div class="cover-page">
+        <div class="sidebar">
+            <div class="w-btn" onclick="openDashboard()">Dashboard</div>
+
+            <div class="head">CATEGORIES</div>
+            <div class="w-btn" onclick="manageCategories()">Manage Categories</div>
+
+            <div class="head">TESTS</div>
+            <div class="b-btn" onclick="manageTests()">Manage Tests</div>
+            <div class="w-btn" onclick="manageWorkers()">Manage Workers</div>
+            <div class="w-btn" onclick="manageHospitals()">Manage hospitals</div>
+
+            <div class="head">COUPON</div>
+            <div class="w-btn" onclick="manageCoupons()">Manage Coupons</div>
+        </div>
+
+        <div id="addItems">
+            <div class="main-head" id="addHead">
+                <div>Add New Test</div><button id="addBtn" onclick="addTest()">Save</button>
+            </div>
+            <div class="main-head" id="editHead" style="display: none;">
+                <div>Edit Test</div><button id="addBtn" onclick="editTest()">Edit & Save</button>
+            </div>
+            <div class="add-new" id="addForm">
+                <input type="text" placeholder="Category ID" id="category_id">
+                <input type="text" placeholder="Test Name" id="name">
+                <input type="text" placeholder="Price" id="price">
+            </div>
+            <div class="main-head">
+                Tests
+            </div>
+            <div class="categories-container" id="testsContainer"></div>
+        </div>
+
+    </div>
+
+    <script>
+        var editId = 0;
+        fetchTests();
+        function fetchTests() {
+            showLoader();
+
+            const category_id = 1;
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/tests.php?route=list_tests&category_id=" + category_id, requestOptions)
+                .then((response) => response.json())
+                .then((result) => {
+                    console.log(result);
+                    showTests(result.data);
+                })
+                .catch((error) => console.error(error));
+        }
+
+        function showTests(data) {
+            const container = document.getElementById('testsContainer');
+            container.innerHTML = "";
+
+            data.forEach(item => {
+                const newCategory = `
+                <div class="category-box" id="${item.id}" >
+                    <div class="icon-text" id="name${item.id}">${item.name}</div>
+                    <div class="icon-text" id="price${item.id}">${item.price}</div>
+                    <div class="action">
+                        <div class="edit" onclick="editTestTab(${item.id})"><img src="https://cdn-icons-png.flaticon.com/128/10336/10336582.png" alt=""></div>
+                        <div class="delete" onclick="deleteTest(${item.id})"><img src="https://cdn-icons-png.flaticon.com/128/1828/1828843.png" alt=""></div>
+                    </div>
+                </div>`
+
+                container.innerHTML += newCategory
+            });
+            hideLoader();
+        }
+
+        function addTest() {
+            const category_id = document.getElementById('category_id').value;
+            const name = document.getElementById('name').value;
+            const price = document.getElementById('price').value;
+
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/tests.php?route=add_test&category_id=" + category_id + "&name=" + name + "&price=" + price, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+                fetchTests();
+        }
+
+        function deleteTest(id) {
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/tests.php?route=delete_test&id=" + id, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+            document.getElementById(id).remove();
+        }
+
+        function editTestTab(id) {
+            document.getElementById('editHead').style.display = "flex";
+            document.getElementById('addHead').style.display = "none";
+
+            document.getElementById('name').value = document.getElementById("name" + id).innerText;
+            document.getElementById('category_id').value = document.getElementById("category_id" + id).innerText;
+            document.getElementById('price').value = document.getElementById("price" + id).innerText;
+
+            editId = id;
+        }
+
+        function editTest() {
+            const category_id = document.getElementById('category_id').value;
+            const name = document.getElementById('name').value;
+            const price = document.getElementById('price').value;
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/tests.php?route=edit_test&id=" + editId + "&category_id=" + category_id + "&name=" + name + "&price=" + price, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+                document.getElementById('editHead').style.display = "none";
+                document.getElementById('addHead').style.display = "flex";
+                fetchTests();
+        }
+
+
+        function openDashboard() {
+            showLoader();
+            window.location.href = "admin.html"
+        }
+        function manageCategories() {
+            showLoader();
+            window.location.href = "categories.html"
+        }
+        function manageCoupons() {
+            showLoader();
+            window.location.href = "coupon.html"
+        }
+        function manageHospitals() {
+            showLoader();
+            window.location.href = "hospital.html"
+        }
+        function manageTests() {
+            showLoader();
+            window.location.href = "test.html"
+        }
+        function manageWorkers() {
+            showLoader();
+            window.location.href = "worker.html"
+        }
+        function showLoader() {
+            document.getElementById('loader-overlay').style.display = "flex";
+        }
+        function hideLoader() {
+            document.getElementById('loader-overlay').style.display = "none";
+        }
+    </script>
+</body>
+
+</html>

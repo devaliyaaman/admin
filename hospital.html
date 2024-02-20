@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&family=Roboto:wght@300;400&display=swap"
+        rel="stylesheet">
+</head>
+
+<style>
+   
+</style>
+
+<body>
+    <div id="loader-overlay">
+        <div class="loading" id="loader"></div>
+    </div>
+
+    <div class="navbar">
+        <div class="head">Admin Panel</div>
+        <a href="">Logout</a>
+    </div>
+
+    <div class="cover-page">
+        <div class="sidebar">
+            <div class="w-btn" onclick="openDashboard()">Dashboard</div>
+
+            <div class="head">CATEGORIES</div>
+            <div class="w-btn" onclick="manageCategories()">Manage Categories</div>
+
+            <div class="head">TESTS</div>
+            <div class="w-btn" onclick="manageTests()">Manage Tests</div>
+            <div class="w-btn" onclick="manageWorkers()">Manage Workers</div>
+            <div class="b-btn" onclick="manageHospitals()">Manage hospitals</div>
+
+            <div class="head">COUPON</div>
+            <div class="w-btn" onclick="manageCoupons()">Manage Coupons</div>
+        </div>
+
+        <div id="addItems">
+            <div class="main-head" id="addHead">
+                <div>Add New Hospital</div><button id="addBtn" onclick="addHospital()">Save</button>
+            </div>
+            <div class="main-head" id="editHead" style="display: none;">
+                <div>Edit Hospital</div><button id="addBtn" onclick="editHospital()">Edit & Save</button>
+            </div>
+            <div class="add-new" id="addForm">
+                <input type="text" placeholder="Hospital Name" id="name">
+                <input type="email" placeholder="Email" id="email">
+                <input type="text" placeholder="Password" id="password">
+                <input type="text" placeholder="Show Price" id="show">
+            </div>
+            <div class="main-head">
+                Hospitals
+            </div>
+            <div class="categories-container" id="hospitalsContainer"></div>
+        </div>
+
+    </div>
+
+    <script>
+        var editId = 0;
+        fetchHospitals();
+        function fetchHospitals() {
+
+            showLoader();
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/hospitals.php?route=list_hospitals", requestOptions)
+                .then((response) => response.json())
+                .then((result) => {
+                    // console.log(result);
+                    showHospitals(result.data);
+                })
+                .catch((error) => console.error(error));
+        }
+
+        function showHospitals(data) {
+            const container = document.getElementById('hospitalsContainer');
+            container.innerHTML = "";
+
+            data.forEach(item => {
+                const newCategory = `
+                <div class="category-box" id="${item.id}" >
+                    <div class="icon-text" id="name${item.id}">${item['hospital_name']}</div>
+                    <div class="icon-text" id="email${item.id}">${item.email}</div>
+                    <div class="icon-text" id="created${item.id}">${item['created_at']}</div>
+
+                    <div class="action">
+                        <div class="edit" onclick="editHospitalTab(${item.id})"><img src="https://cdn-icons-png.flaticon.com/128/10336/10336582.png" alt=""></div>
+                        <div class="delete" onclick="deleteTest(${item.id})"><img src="https://cdn-icons-png.flaticon.com/128/1828/1828843.png" alt=""></div>
+                    </div>
+                </div>`
+
+                container.innerHTML += newCategory
+            });
+            hideLoader();
+        }
+
+        function addHospital() {
+            const name = document.getElementById('name').value;
+            const show = document.getElementById('show').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/hospitals.php?route=add_hospital&hospital_name=" + name + "&email=" + email + "&password=" + password + "&show_price=" + show, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+            fetchHospitals();
+        }
+
+        function deleteTest(id) {
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/hospitals.php?route=delete_hospitals&id=" + id, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+            document.getElementById(id).remove();
+        }
+
+        function editHospitalTab(id) {
+            document.getElementById('editHead').style.display = "flex";
+            document.getElementById('addHead').style.display = "none";
+
+            document.getElementById('name').value = document.getElementById("name" + id).innerText;
+            document.getElementById('email').value = document.getElementById("email" + id).innerText;
+
+            editId = id;
+        }
+
+        function editHospital() {
+            const name = document.getElementById('name').value;
+            const show = document.getElementById('show').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/hospitals.php?route=edit_hospital&id=" + editId + "&hospital_name=" + name + "&email=" + email + "&password=" + password + "&show_price=" + show, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+            fetchHospitals();
+            document.getElementById('editHead').style.display = "none";
+            document.getElementById('addHead').style.display = "flex";
+            fetchHospitals();
+        }
+
+
+        function openDashboard() {
+            showLoader();
+            window.location.href = "admin.html"
+        }
+        function manageCategories() {
+            showLoader();
+            window.location.href = "categories.html"
+        }
+        function manageCoupons() {
+            showLoader();
+            window.location.href = "coupon.html"
+        }
+        function manageHospitals() {
+            showLoader();
+            window.location.href = "hospital.html"
+        }
+        function manageTests() {
+            showLoader();
+            window.location.href = "test.html"
+        }
+        function manageWorkers() {
+            showLoader();
+            window.location.href = "worker.html"
+        }
+        function showLoader() {
+            document.getElementById('loader-overlay').style.display = "flex";
+        }
+        function hideLoader() {
+            document.getElementById('loader-overlay').style.display = "none";
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&family=Roboto:wght@300;400&display=swap"
+        rel="stylesheet">
+</head>
+
+<style>
+    .categories-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        padding: 0 1rem;
+        gap: 1rem;
+
+        .box {
+            display: grid;
+            gap: 0.3rem;
+            justify-content: center;
+            padding: 1rem;
+            border: 1px solid #8871E6;
+            border-radius: 15px;
+
+            .action {
+                display: flex;
+                justify-content: center;
+                gap: 0.7rem;
+
+                img {
+                    max-width: 1.2rem;
+                }
+            }
+        }
+    }
+</style>
+
+<body>
+    <div id="loader-overlay">
+        <div class="loading" id="loader"></div>
+    </div>
+
+    <div class="navbar">
+        <div class="head">Admin Panel</div>
+        <a href="">Logout</a>
+    </div>
+
+    <div class="cover-page">
+        <div class="sidebar">
+            <div class="w-btn" onclick="openDashboard()">Dashboard</div>
+
+            <div class="head">CATEGORIES</div>
+            <div class="w-btn" onclick="manageCategories()">Manage Categories</div>
+
+            <div class="head">TESTS</div>
+            <div class="w-btn" onclick="manageTests()">Manage Tests</div>
+            <div class="b-btn" onclick="manageWorkers()">Manage Workers</div>
+            <div class="w-btn" onclick="manageHospitals()">Manage hospitals</div>
+
+            <div class="head">COUPON</div>
+            <div class="w-btn" onclick="manageCoupons()">Manage Coupons</div>
+        </div>
+
+        <div id="addItems">
+            <div class="main-head" id="addHead">
+                <div>Add New Worker</div><button id="addBtn" onclick="addWorker()">Save</button>
+            </div>
+            <div class="main-head" id="editHead" style="display: none;">
+                <div>Edit Worker</div><button id="addBtn" onclick="editWorker()">Edit & Save</button>
+            </div>
+            <div class="add-new" id="addForm">
+                <input type="text" placeholder="Worker Name" id="name">
+                <input type="tel" placeholder="Mobile no" id="phone">
+                <input type="email" placeholder="Email" id="email">
+                <input type="text" placeholder="Password" id="password">
+            </div>
+            <div class="main-head">
+                Workers
+            </div>
+            <div class="categories-container" id="workersContainer"></div>
+        </div>
+
+    </div>
+
+    <script>
+        var editId = 0;
+        fetchWorkers();
+        function fetchWorkers() {
+            showLoader();
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/workers.php?route=list_workers", requestOptions)
+                .then((response) => response.json())
+                .then((result) => {
+                    console.log(result);
+                    showWorkers(result.data);
+                })
+                .catch((error) => console.error(error));
+        }
+
+        function showWorkers(data) {
+            const container = document.getElementById('workersContainer');
+            container.innerHTML = "";
+
+            data.forEach(item => {
+                const newCategory = `
+                <div class="box"  id="${item.id}">
+                    <div class="row" id="name${item.id}">${item.name}
+                    </div>
+                    <div class="row" id="email${item.id}">${item.email}
+                    </div>
+                    <div class="row" id="phone${item.id}">${item.mobile}
+                    </div>
+                    <div class="row">Available ${item['is_available']}
+                    </div>
+                    <div class="row">Jobs Done ${item['total_jobs_done']}
+                    </div>
+                    <div class="action">
+                        <div class="edit" onclick="editWorkerTab(${item.id})"><img src="https://cdn-icons-png.flaticon.com/128/10336/10336582.png" alt=""></div>
+                        <div class="delete" onclick="deleteWorker(${item.id})"><img src="https://cdn-icons-png.flaticon.com/128/1828/1828843.png" alt=""></div>
+                    </div>
+                </div>`
+
+                container.innerHTML += newCategory
+            });
+            hideLoader();
+        }
+
+        function addWorker() {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/workers.php?route=add_worker&email=" + email + "&password=" + password + "&name=" + name + "&mobile=" + phone, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+            fetchWorkers();
+        }
+
+        function deleteWorker(id) {
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/workers.php?route=delete_worker&id=" + id, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+            document.getElementById(id).remove();
+        }
+
+        function editWorkerTab(id) {
+            document.getElementById('editHead').style.display = "flex";
+            document.getElementById('addHead').style.display = "none";
+
+            document.getElementById('name').value = document.getElementById("name" + id).innerText;
+            document.getElementById('phone').value = document.getElementById("phone" + id).innerText;
+            document.getElementById('email').value = document.getElementById("email" + id).innerText;
+
+            editId = id;
+        }
+
+        function editWorker() {
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/workers.php?route=edit_worker&id=" + editId + "&email=" + email + "&password=" + password + "&name=" + name + "&mobile=" + phone, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+            fetchWorkers();
+            document.getElementById('editHead').style.display = "none";
+            document.getElementById('addHead').style.display = "flex";
+        }
+
+        function openDashboard() {
+            showLoader();
+            window.location.href = "admin.html"
+        }
+        function manageCategories() {
+            showLoader();
+            window.location.href = "categories.html"
+        }
+        function manageCoupons() {
+            showLoader();
+            window.location.href = "coupon.html"
+        }
+        function manageHospitals() {
+            showLoader();
+            window.location.href = "hospital.html"
+        }
+        function manageTests() {
+            showLoader();
+            window.location.href = "test.html"
+        }
+        function manageWorkers() {
+            showLoader();
+            window.location.href = "worker.html"
+        }
+        function showLoader() {
+            document.getElementById('loader-overlay').style.display = "flex";
+        }
+        function hideLoader() {
+            document.getElementById('loader-overlay').style.display = "none";
+        }
+    </script>
+</body>
+
+</html>

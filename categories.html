@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300&family=Roboto:wght@300;400&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <div id="loader-overlay">
+        <div class="loading" id="loader"></div>
+    </div>
+
+    <div class="navbar">
+        <div class="head">Admin Panel</div>
+        <a href="">Logout</a>
+    </div>
+
+    <div class="cover-page">
+        <div class="sidebar">
+            <div class="w-btn" onclick="openDashboard()">Dashboard</div>
+
+            <div class="head">CATEGORIES</div>
+            <div class="b-btn" onclick="manageCategories()">Manage Categories</div>
+
+            <div class="head">TESTS</div>
+            <div class="w-btn" onclick="manageTests()">Manage Tests</div>
+            <div class="w-btn" onclick="manageWorkers()">Manage Workers</div>
+            <div class="w-btn" onclick="manageHospitals()">Manage hospitals</div>
+
+            <div class="head">COUPON</div>
+            <div class="w-btn" onclick="manageCoupons()">Manage Coupons</div>
+        </div>
+
+        <div id="addItems">
+            <div class="main-head" id="addHead">
+                <div>Add New Category</div><button id="addBtn" onclick="addCategory()">Save</button><button id="editBtn"
+                    style="display: none;">Edit and save</button>
+            </div>
+            <div class="main-head" id="editHead" style="display: none;">
+                <div>Edit Category</div><button id="addBtn" onclick="editCategory()">Edit & Save</button><button
+                    id="editBtn" style="display: none;">Edit and save</button>
+            </div>
+            <div class="add-new" id="addForm">
+                <input type="text" placeholder="Category Name" id="cat_name">
+                <input type="text" placeholder="Icon URL" id="i_url">
+            </div>
+            <div class="main-head">
+                Categories
+            </div>
+            <div class="categories-container" id="categoriesContainer">
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        var editId = 0;
+        fetchCategory();
+        function fetchCategory() {
+            showLoader();
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/categories.php?route=list_categories", requestOptions)
+                .then((response) => response.json())
+                .then((result) => {
+                    showCategories(result.data);
+                })
+                .catch((error) => console.error(error));
+        }
+
+        function showCategories(data) {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = "";
+
+            data.forEach(item => {
+                const newCategory = `
+                <div class="category-box" id="${item.id}" >
+                    <div class="img"><img src=${item.icon} id="icon${item.id}" alt=""></div>
+                    <div class="icon-text" id="name${item.id}">${item.name}</div>
+                    <div class="action">
+                    <div class="edit" onclick="editCategoryTab(${item.id})"><img src="https://cdn-icons-png.flaticon.com/128/10336/10336582.png" alt=""></div>
+                    <div class="delete" onclick="deleteCategory(${item.id})"><img src="https://cdn-icons-png.flaticon.com/128/1828/1828843.png" alt=""></div>
+                </div>
+                </div>`
+
+                container.innerHTML += newCategory
+            });
+            hideLoader();
+        }
+
+        function addCategory() {
+            const name = document.getElementById('cat_name').value;
+            const url = document.getElementById('i_url').value;
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/categories.php?route=add_category&name=" + name + "&icon=" + url, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+            fetchCategory();
+        }
+
+        function deleteCategory(id) {
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/categories.php?route=delete_category&id=" + id, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+            document.getElementById(id).remove();
+        }
+
+        function editCategoryTab(id) {
+            document.getElementById('editHead').style.display = "flex";
+            document.getElementById('addHead').style.display = "none";
+
+            document.getElementById('cat_name').value = document.getElementById("name" + id).innerText;
+            document.getElementById('i_url').value = document.getElementById("icon" + id).src;
+            editId = id;
+        }
+
+        function editCategory() {
+            const name = document.getElementById('cat_name').value;
+            const url = document.getElementById('i_url').value;
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            fetch("https://developer.dreamdevinfotech.com/jl-lab/categories.php?route=edit_category&id=" + editId + "&name=" + name + "&icon=" + url, requestOptions)
+                .then((response) => response.text())
+                .then((result) => console.log(result))
+                .catch((error) => console.error(error));
+
+
+            document.getElementById('editHead').style.display = "none";
+            document.getElementById('addHead').style.display = "flex";
+            fetchCategory();
+        }
+
+
+        function openDashboard() {
+            showLoader();
+            window.location.href = "admin.html"
+        }
+        function manageCategories() {
+            showLoader();
+            window.location.href = "categories.html"
+        }
+        function manageCoupons() {
+            showLoader();
+            window.location.href = "coupon.html"
+        }
+        function manageHospitals() {
+            showLoader();
+            window.location.href = "hospital.html"
+        }
+        function manageTests() {
+            showLoader();
+            window.location.href = "test.html"
+        }
+        function manageWorkers() {
+            showLoader();
+            window.location.href = "worker.html"
+        }
+        function showLoader() {
+            document.getElementById('loader-overlay').style.display = "flex";
+        }
+        function hideLoader() {
+            document.getElementById('loader-overlay').style.display = "none";
+        }
+    </script>
+</body>
+
+</html>
